@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warkadi | WRIZ v4.3</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',   // Emerald Green
+                        secondary: '#059669', // Darker Green
+                        darkBg: '#064e3b',    // Very Dark Green
+                        panelBg: '#065f46',   // Deep Emerald
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Rajdhani', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #022c22; /* Black-Green */
+            color: #ecfdf5; 
+            overflow-x: hidden; 
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(5, 150, 105, 0.05) 0%, transparent 20%);
+        }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Rajdhani', sans-serif; letter-spacing: 0.05em; }
+        
+        /* Educational Glass Panel */
+        .glass-panel { 
+            background: rgba(6, 78, 59, 0.7); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(16, 185, 129, 0.2); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); 
+        }
+        
+        /* Custom Scrollbar Green */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #064e3b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+        
+        /* Animations */
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+        .avatar-float { animation: float 4s ease-in-out infinite; }
+        
+        .oberth-toast { transform: translateY(100px); opacity: 0; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .oberth-toast.show { transform: translateY(0); opacity: 1; }
+
+        /* Input Focus Effects */
+        .input-focus { transition: all 0.3s; background-color: #064e3b; color: #fff; border: 1px solid #065f46; }
+        .input-focus:focus { 
+            transform: translateY(-2px); 
+            border-color: #10b981; 
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); 
+        }
+    </style>
+</head>
+<body class="selection:bg-emerald-500 selection:text-black">
+
+    <div id="loading" class="fixed inset-0 bg-[#022c22] z-[100] flex flex-col justify-center items-center">
+        <div class="relative">
+            <div class="animate-spin absolute inline-flex h-full w-full rounded-full border-t-2 border-b-2 border-emerald-500 opacity-75"></div>
+            <div class="relative rounded-full h-16 w-16 bg-emerald-950 border border-emerald-700 flex items-center justify-center text-emerald-400 text-2xl shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+        </div>
+        <p class="mt-6 text-emerald-500 font-mono text-sm animate-pulse text-center px-4 uppercase">MENYIAPKAN RUANG BELAJAR WARKADI...</p>
+    </div>
+
+    <div id="rincha-modal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-panel rounded-xl shadow-2xl p-7 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300 border border-emerald-500/30" id="rincha-modal-content">
+            <div class="flex items-center mb-4 border-b border-emerald-800 pb-3">
+                <div class="h-10 w-10 rounded-lg bg-emerald-900/30 flex items-center justify-center text-emerald-400 mr-3 border border-emerald-500/30">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-white text-lg" id="modal-title">PESAN GURU WARKADI</h3>
+                    <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Pemberitahuan Akademik</p>
+                </div>
+            </div>
+            <p id="rincha-modal-message" class="text-emerald-100 mb-6 text-sm leading-relaxed font-mono"></p>
+            <div class="flex justify-end">
+                <button onclick="closeModal()" id="modal-btn" class="bg-emerald-700 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-heading font-bold tracking-wide shadow-[0_0_10px_rgba(16,185,129,0.4)] transition hover:shadow-[0_0_20px_rgba(16,185,129,0.6)]">
+                    MENGERTI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <aside class="w-full md:w-72 bg-emerald-950/80 border-b md:border-r border-emerald-800/50 flex md:flex-col p-6 sticky top-0 h-auto md:h-screen z-40 backdrop-blur-md">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="h-10 w-10 bg-gradient-to-br from-emerald-600 to-green-500 rounded-lg flex items-center justify-center text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <h1 class="font-heading font-bold text-xl text-white leading-none tracking-wide">WARKADI</h1>
+                    <p class="text-[9px] text-emerald-400 font-bold uppercase mt-1 tracking-[0.2em]">Pendidik Digital v4.3</p>
+                </div>
+            </div>
+            <div class="hidden md:block">
+                <div class="p-5 rounded-xl bg-emerald-900/50 border border-emerald-700 text-center mb-6 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                    <div class="avatar-float mx-auto h-20 w-20 rounded-full p-0.5 bg-gradient-to-tr from-emerald-500 to-green-600 mb-3 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                        <img src="https://scontent-cgk2-1.xx.fbcdn.net/v/t39.30808-6/337109296_3216319608658934_6924315035263881512_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeGsd9gQ7haaJztok-8SZV2Hu5gZs4JrlcW7mBmzgmuVxf6ixg5oYbrVuAw5mUWt09SQl6C6K6psyUXDNEbqm5bp&_nc_ohc=N12ubT_OITQQ7kNvwF7HR-9&_nc_oc=AdnF1M3RYS0VHpccCzMpotj97nlDe5RBUnU99peoaZ4jnZ7Z7DOa_c2-a9WW5xqKw1I&_nc_zt=23&_nc_ht=scontent-cgk2-1.xx&_nc_gid=AkHMRPW-kbuwH6lnZq2qDg&oh=00_AfsLKetJyvkEUHp07hZv7-utxa7mUL5CAz9_EbekWDiOCg&oe=699BB5A1" alt="Guru Warkadi" class="h-full w-full rounded-full bg-black object-cover opacity-90">
+                    </div>
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Status: Ada di Kelas</h3>
+                    <p class="text-[10px] text-emerald-400 mt-1 font-mono">Siap membimbing Anda.</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-4 md:p-8 w-full max-w-6xl mx-auto overflow-hidden pb-24">
+            
+            <section class="mb-8">
+                <div class="glass-panel rounded-3xl p-6 md:p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                    <div class="flex items-center gap-4 mb-8 relative z-10">
+                        <div class="h-14 w-14 bg-emerald-900 border border-emerald-700 rounded-xl flex items-center justify-center text-2xl shadow-lg text-emerald-400">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-heading text-2xl font-bold text-white">MEJA GURU WARKADI</h2>
+                            <p class="text-sm text-emerald-300 font-mono">Atur kurikulum dan tugas sebelum memulai pengajaran.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 relative z-10">
+                        <div class="flex items-center justify-between p-5 bg-emerald-900/60 rounded-xl border border-emerald-800/50 hover:border-emerald-500/30 transition duration-300">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-emerald-950 p-2 rounded-lg text-emerald-500 border border-emerald-800"><i class="fa-solid fa-magnifying-glass"></i></div>
+                                <div>
+                                    <span class="block text-sm font-bold text-emerald-100">Eksplorasi Wawasan</span>
+                                    <span class="text-[10px] text-emerald-500 font-mono">Mencari Materi di Wikipedia</span>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="master-wiki-active" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-emerald-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 peer-checked:after:bg-white"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-5 bg-emerald-900/60 rounded-xl border border-emerald-800/50 hover:border-green-500/30 transition duration-300">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-emerald-950 p-2 rounded-lg text-green-500 border border-emerald-800"><i class="fa-solid fa-user-graduate"></i></div>
+                                <div>
+                                    <span class="block text-sm font-bold text-emerald-100">Bimbingan Personal</span>
+                                    <span class="text-[10px] text-emerald-500 font-mono">Tugas Berbasis Data</span>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="master-asst-active" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-emerald-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 peer-checked:after:bg-white"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 relative z-10">
+                        
+                        <div class="bg-emerald-900/40 p-5 rounded-2xl border border-emerald-800/50">
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase mb-4 tracking-widest border-b border-emerald-800 pb-2 flex justify-between">
+                                Parameter Wawasan <i class="fa-solid fa-book"></i>
+                            </h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-emerald-500 mb-1 uppercase">Topik Pelajaran</label>
+                                    <input type="text" id="wiki-topic" placeholder="Contoh: Tata Surya, Matematika..." class="input-focus w-full rounded-lg px-4 py-2 text-sm outline-none placeholder-emerald-800">
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-1/3">
+                                        <label class="block text-[10px] font-bold text-emerald-500 mb-1 uppercase">Jumlah Materi</label>
+                                        <input type="number" id="wiki-limit" value="22" class="input-focus w-full rounded-lg px-3 py-2 text-sm text-center font-bold outline-none text-emerald-400">
+                                    </div>
+                                    <div class="w-2/3">
+                                        <label class="block text-[10px] font-bold text-emerald-500 mb-1 uppercase">Waktu Baca (Detik)</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" id="wiki-min-delay" value="10" class="input-focus w-full rounded-lg px-3 py-2 text-sm text-center outline-none">
+                                            <span class="text-emerald-700">-</span>
+                                            <input type="number" id="wiki-max-delay" value="15" class="input-focus w-full rounded-lg px-3 py-2 text-sm text-center outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-900/40 p-5 rounded-2xl border border-emerald-800/50">
+                            <h4 class="text-xs font-bold text-green-500 uppercase mb-4 tracking-widest border-b border-emerald-800 pb-2 flex justify-between">
+                                Parameter Bimbingan <i class="fa-solid fa-graduation-cap"></i>
+                            </h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-emerald-500 mb-1 uppercase">Status Kurikulum</label>
+                                    <div class="w-full bg-emerald-950 border border-emerald-800 rounded-lg px-4 py-2 text-sm text-emerald-400 font-mono">
+                                        <i class="fa-solid fa-check-double mr-2 text-emerald-500"></i> Materi Terhubung
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-1/3">
+                                        <label class="block text-[10px] font-bold text-emerald-500 mb-1 uppercase">Target Baca</label>
+                                        <input type="number" id="asst-count" value="12" class="input-focus w-full rounded-lg px-3 py-2 text-sm text-center font-bold outline-none text-green-400">
+                                    </div>
+                                    <div class="w-2/3">
+                                        <label class="block text-[10px] font-bold text-emerald-500 mb-1 uppercase">Interaksi (Detik)</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" id="asst-min-delay" value="10" class="input-focus w-full rounded-lg px-3 py-2 text-sm text-center outline-none">
+                                            <span class="text-emerald-700">-</span>
+                                            <input type="number" id="asst-max-delay" value="15" class="input-focus w-full rounded-lg px-3 py-2 text-sm text-center outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-950/50 p-6 rounded-2xl border border-emerald-800 relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <label class="text-xs font-bold text-emerald-500 uppercase tracking-wider">Jeda Antar Pelajaran</label>
+                            <div class="flex items-center gap-2 bg-emerald-900 px-3 py-1 rounded-lg border border-emerald-700">
+                                <input type="number" id="inter-bot-delay" value="37" class="w-12 text-center font-bold text-white outline-none bg-transparent text-sm font-mono">
+                                <span class="text-xs text-emerald-600">Detik</span>
+                            </div>
+                        </div>
+
+                        <button id="master-start-btn" onclick="startMasterBot()" class="w-full py-4 bg-gradient-to-r from-emerald-700 via-green-600 to-emerald-700 bg-[length:200%_auto] hover:bg-[100%_0] transition-all duration-500 text-white rounded-xl font-heading font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-[0.98] text-lg flex items-center justify-center gap-3 border border-emerald-500/30">
+                            <i class="fa-solid fa-chalkboard"></i> MULAI PROSES MENGAJAR
+                        </button>
+                        <p class="text-center text-[10px] text-emerald-600 mt-3 font-mono">Pak Warkadi akan mengambil jeda sesekali untuk beristirahat (Manusiawi).</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="active-progress-panel" class="mb-8 hidden">
+                <div class="glass-panel rounded-xl p-5 border-l-4 border-emerald-500 flex flex-col md:flex-row items-center gap-4">
+                    <div class="flex-1 w-full">
+                        <div class="flex justify-between text-xs font-bold text-emerald-200 mb-2 font-mono">
+                            <span id="active-status-text" class="flex items-center gap-2 uppercase"><i class="fa-solid fa-spinner fa-spin text-emerald-400"></i> Guru sedang mengajar...</span>
+                            <span id="active-counter" class="bg-emerald-900 border border-emerald-700 text-emerald-400 px-2 py-0.5 rounded text-[10px]">0/0</span>
+                        </div>
+                        <div class="h-2 w-full bg-emerald-950 rounded-full overflow-hidden border border-emerald-800">
+                            <div id="active-progress-bar" class="h-full bg-gradient-to-r from-emerald-600 to-green-400 transition-all duration-500 w-0 shadow-[0_0_10px_#10b981]"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border border-emerald-800/50">
+                <h3 class="font-heading font-bold text-white mb-6 flex items-center gap-2 text-lg">
+                    <i class="fa-solid fa-history text-emerald-500"></i> BUKU JURNAL GURU
+                </h3>
+                <div class="overflow-x-auto custom-scrollbar max-h-96">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 bg-[#064e3b] text-[10px] uppercase font-bold text-emerald-400 z-10 font-mono tracking-wider">
+                            <tr>
+                                <th class="px-4 py-3 border-b border-emerald-700">Kategori</th>
+                                <th class="px-4 py-3 border-b border-emerald-700">Materi / Tugas</th>
+                                <th class="px-4 py-3 text-center border-b border-emerald-700">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-log" class="text-xs divide-y divide-emerald-800/50">
+                            <tr><td colspan="3" class="px-4 py-12 text-center text-emerald-700 italic bg-emerald-900/20 rounded-xl m-2 font-mono">Belum ada catatan aktivitas hari ini.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="rincha-toast" class="fixed bottom-6 right-6 z-[120] oberth-toast flex items-center max-w-sm w-full pointer-events-none px-4 md:px-0">
+        <div class="bg-emerald-950/95 backdrop-blur rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.6)] p-4 border border-emerald-500/30 flex gap-4 items-center pointer-events-auto w-full">
+            <div class="h-10 w-10 rounded-full bg-emerald-900/20 p-1 flex-shrink-0 border border-emerald-500/50">
+                <img src="https://scontent-cgk2-1.xx.fbcdn.net/v/t39.30808-6/337109296_3216319608658934_6924315035263881512_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeGsd9gQ7haaJztok-8SZV2Hu5gZs4JrlcW7mBmzgmuVxf6ixg5oYbrVuAw5mUWt09SQl6C6K6psyUXDNEbqm5bp&_nc_ohc=N12ubT_OITQQ7kNvwF7HR-9&_nc_oc=AdnF1M3RYS0VHpccCzMpotj97nlDe5RBUnU99peoaZ4jnZ7Z7DOa_c2-a9WW5xqKw1I&_nc_zt=23&_nc_ht=scontent-cgk2-1.xx&_nc_gid=AkHMRPW-kbuwH6lnZq2qDg&oh=00_AfsLKetJyvkEUHp07hZv7-utxa7mUL5CAz9_EbekWDiOCg&oe=699BB5A1" alt="Warkadi" class="h-full w-full rounded-full object-cover opacity-80">
+            </div>
+            <div class="flex-1">
+                <h4 class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-heading">Guru Warkadi</h4>
+                <p id="toast-message" class="text-xs text-emerald-100 font-mono">Assalamu'alaikum. Mari kita mulai belajar.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI (TIDAK BERUBAH) ---
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwJ4x1yQMEn5a2dCXDDdkP9SrKRIyXjd3PpKGUBztcak1z3LeHV5--6vP7At8UrbeYy4g/exec';
+        const ORGANIC_REWARDS_LINK = "sapphire://miniApp?id=32649384730b2d61c9e79d46de589115&source=2mBadge";
+        const wikiPrefixes = ["apa itu ", "definisi ", "sejarah ", "manfaat ", "fakta ", "cara kerja ", "mengapa ", "siapa "];
+
+        // --- GLOBAL STATE ---
+        let globalData = [];
+        let assistantQueue = []; 
+        let botActive = false;
+        let botType = null;
+        let botTimer = null;
+        let currentIndex = 0;
+        let wikiWords = [];
+        let botWindow = null;
+        
+        // State Coffee Break
+        let linksReadSinceBreak = 0;
+        let nextBreakAt = 5; 
+
+        // --- CORE UI FUNCTIONS ---
+        function speak(msg) {
+            const t = document.getElementById('rincha-toast');
+            document.getElementById('toast-message').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 4000);
+        }
+
+        function addLog(mode, task) {
+            const body = document.getElementById('history-log');
+            const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            if (body.innerText.includes('Belum ada catatan')) body.innerHTML = '';
+            
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-emerald-500/10 transition";
+            // Kategori: Wiki -> Hijau Muda, Asst -> Hijau Tua
+            const colorClass = mode === 'Wiki' ? 'text-emerald-400' : 'text-green-400';
+            
+            tr.innerHTML = `<td class="px-4 py-3 font-bold ${colorClass} font-mono uppercase">${mode === 'Wiki' ? 'Materi' : 'Bimbingan'}</td><td class="px-4 py-3 text-emerald-100 truncate max-w-[150px] font-mono">${task}</td><td class="px-4 py-3 text-center text-emerald-600 font-mono text-[10px]">${time}</td>`;
+            body.prepend(tr);
+        }
+
+        function showModal(msg, title = "PESAN GURU WARKADI", btnText = "MENGERTI") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('rincha-modal-message').innerHTML = msg;
+            document.getElementById('modal-btn').innerText = btnText;
+            const m = document.getElementById('rincha-modal');
+            m.classList.remove('hidden');
+            setTimeout(() => m.classList.remove('opacity-0'), 10);
+        }
+
+        function closeModal() {
+            document.getElementById('rincha-modal').classList.add('opacity-0');
+            setTimeout(() => document.getElementById('rincha-modal').classList.add('hidden'), 300);
+        }
+
+        function updateProgress(current, total, text) {
+            const panel = document.getElementById('active-progress-panel');
+            panel.classList.remove('hidden');
+            document.getElementById('active-progress-bar').style.width = `${((current + 1) / total) * 100}%`;
+            document.getElementById('active-counter').innerText = `${current + 1}/${total}`;
+            document.getElementById('active-status-text').innerHTML = `<i class="fa-solid fa-graduation-cap fa-fade text-emerald-400 mr-2"></i> ${text}`;
+        }
+
+        // --- COFFEE BREAK LOGIC (Gaya Guru) ---
+        function triggerCoffeeBreak(callback) {
+            const breakDur = (Math.floor(Math.random() * 6) + 5) * 1000; 
+            const messages = [
+                "Bapak istirahat sebentar ya, mau minum teh dulu... ☕",
+                "Sedang mengoreksi catatan sebentar... ✍️",
+                "Harap tenang, Bapak sedang menyiapkan materi berikutnya... 📚",
+                "Menata buku di meja guru... 📖",
+                "Memberi waktu siswa untuk mencatat... ✏️"
+            ];
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            
+            if (botWindow && !botWindow.closed) botWindow.close();
+
+            showModal(`${msg}<br><br><span class='text-emerald-400 font-bold animate-pulse font-mono'>Melanjutkan bimbingan dalam ${breakDur/1000} detik...</span>`, "WAKTU ISTIRAHAT", "TUNGGU");
+            
+            linksReadSinceBreak = 0;
+            nextBreakAt = Math.floor(Math.random() * 5) + 4; 
+
+            setTimeout(() => {
+                closeModal();
+                speak("Mari kita lanjutkan pembelajarannya.");
+                callback();
+            }, breakDur);
+        }
+
+        // --- MASTER BOT LOGIC ---
+        async function startMasterBot() {
+            if (botActive) {
+                location.reload(); 
+                return;
+            }
+
+            const isWikiEnabled = document.getElementById('master-wiki-active').checked;
+            const isAsstEnabled = document.getElementById('master-asst-active').checked;
+            const interDelay = parseInt(document.getElementById('inter-bot-delay').value) * 1000;
+
+            if (!isWikiEnabled && !isAsstEnabled) {
+                showModal("Pilih materi atau bimbingan yang ingin dijalankan.", "KELAS MASIH KOSONG", "SIAP"); return;
+            }
+
+            botActive = true;
+            const btn = document.getElementById('master-start-btn');
+            btn.innerHTML = `<i class="fa-solid fa-stop"></i> AKHIRI SESI MENGAJAR`;
+            btn.className = "w-full py-4 bg-red-900/80 text-white rounded-xl font-bold shadow-none border border-red-700/50 hover:bg-red-800 transition";
+            
+            linksReadSinceBreak = 0;
+            nextBreakAt = Math.floor(Math.random() * 5) + 4;
+
+            if (isWikiEnabled) {
+                speak("Sesi 1: Mengulas Wawasan Wikipedia...");
+                await runWikiProcess();
+                
+                if (isAsstEnabled && botActive) {
+                    showModal(`Sesi materi selesai. Masuk ke sesi Bimbingan dalam ${interDelay/1000} detik...`, "GANTI SESI", "SIAPKAN BUKU");
+                    await new Promise(r => setTimeout(r, interDelay));
+                    closeModal();
+                }
+            }
+
+            if (isAsstEnabled && botActive) {
+                speak("Sesi 2: Bimbingan Siswa Personal...");
+                await runAssistantProcess();
+            }
+
+            if (botActive) {
+                showModal("Alhamdulillah, semua pelajaran hari ini selesai. Waktunya mengambil rapor! 🔓", "KELAS SELESAI", "AMBIL HADIAH");
+                setTimeout(() => window.location.href = ORGANIC_REWARDS_LINK, 2000);
+            }
+        }
+
+        // --- WIKI PROCESS (Materi) ---
+        function runWikiProcess() {
+            return new Promise(async (resolve) => {
+                const topic = document.getElementById('wiki-topic').value || "Pendidikan";
+                
+                try {
+                    const res = await fetch(`https://id.wikipedia.org/w/api.php?action=opensearch&format=json&origin=*&search=${encodeURIComponent(topic)}&limit=100`);
+                    const data = await res.json();
+                    wikiWords = data[1] || [topic];
+                } catch(e) { wikiWords = [topic]; }
+
+                currentIndex = 0; 
+                botType = 'wiki';
+                
+                const step = () => {
+                    const limit = parseInt(document.getElementById('wiki-limit').value);
+                    
+                    if (currentIndex >= limit || !botActive) { 
+                        if (botWindow) botWindow.close(); 
+                        resolve(); 
+                        return; 
+                    }
+
+                    if (linksReadSinceBreak >= nextBreakAt) {
+                        triggerCoffeeBreak(step);
+                        return;
+                    }
+
+                    let query = wikiPrefixes[Math.floor(Math.random() * wikiPrefixes.length)] + wikiWords[Math.floor(Math.random() * wikiWords.length)];
+                    const delay = (Math.floor(Math.random() * (parseInt(document.getElementById('wiki-max-delay').value) - parseInt(document.getElementById('wiki-min-delay').value) + 1)) + parseInt(document.getElementById('wiki-min-delay').value)) * 1000;
+
+                    updateProgress(currentIndex, limit, `Mengulas: ${query}`);
+
+                    botWindow = window.open(`https://www.bing.com/search?q=${encodeURIComponent(query)}&form=QBLH`, 'worker', 'width=800,height=600');
+
+                    botTimer = setTimeout(() => {
+                        if (botWindow && !botWindow.closed) botWindow.close();
+                        addLog('Wiki', query);
+                        currentIndex++;
+                        linksReadSinceBreak++;
+                        setTimeout(step, 1000); 
+                    }, delay);
+                };
+                step();
+            });
+        }
+
+        // --- ASSISTANT PROCESS (Bimbingan) ---
+        function runAssistantProcess() {
+            return new Promise((resolve) => {
+                if (globalData.length === 0) { resolve(); return; }
+
+                const uniqueLinksMap = new Map();
+                globalData.forEach(item => uniqueLinksMap.set(item.url, item));
+                const uniqueData = Array.from(uniqueLinksMap.values());
+
+                const splitIndex = Math.max(0, uniqueData.length - 10);
+                let newestPool = uniqueData.slice(splitIndex); 
+                let olderPool = uniqueData.slice(0, splitIndex); 
+                
+                const shuffle = (array) => array.sort(() => Math.random() - 0.5);
+                newestPool = shuffle(newestPool);
+                olderPool = shuffle(olderPool);
+
+                assistantQueue = [];
+                const maxLen = Math.max(newestPool.length, olderPool.length);
+                
+                for (let i = 0; i < maxLen; i++) {
+                    if (i < olderPool.length) assistantQueue.push(olderPool[i]);
+                    if (i < newestPool.length) assistantQueue.push(newestPool[i]);
+                }
+                
+                currentIndex = 0; botType = 'assistant';
+
+                const step = () => {
+                    const limit = parseInt(document.getElementById('asst-count').value);
+                    
+                    if (currentIndex >= limit || currentIndex >= assistantQueue.length || !botActive) { 
+                        if (botWindow) botWindow.close(); 
+                        resolve(); 
+                        return; 
+                    }
+
+                    if (linksReadSinceBreak >= nextBreakAt) {
+                        triggerCoffeeBreak(step);
+                        return;
+                    }
+
+                    const item = assistantQueue[currentIndex];
+                    const delay = (Math.floor(Math.random() * (parseInt(document.getElementById('asst-max-delay').value) - parseInt(document.getElementById('asst-min-delay').value) + 1)) + parseInt(document.getElementById('asst-min-delay').value)) * 1000;
+
+                    updateProgress(currentIndex, limit, `Bimbingan: ${item.title.substring(0,20)}...`);
+
+                    botWindow = window.open(item.url, 'worker', 'width=800,height=600');
+
+                    botTimer = setTimeout(() => {
+                        if (botWindow && !botWindow.closed) botWindow.close();
+                        addLog('Assistant', item.title);
+                        currentIndex++;
+                        linksReadSinceBreak++;
+                        setTimeout(step, 1000);
+                    }, delay);
+                };
+                step();
+            });
+        }
+
+        async function fetchData() {
+            try {
+                const res = await fetch(WEB_APP_URL);
+                globalData = await res.json();
+                document.getElementById('loading').style.display = 'none';
+                speak("Assalamu'alaikum, Bapak Warkadi sudah siap di meja tugas.");
+            } catch(e) {
+                document.getElementById('loading').style.display = 'none';
+                speak("Koneksi buku jurnal terputus. Mode luring aktif.");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+</body>
+</html>
